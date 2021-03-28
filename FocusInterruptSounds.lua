@@ -100,29 +100,21 @@ local DEFAULT_ARENA_PURGE =
 ]];
 
 local DEFAULT_PVE_PURGE =
-[[Pyrogenics
-Remedy
-Rune Shield
-Runic Barrier
-Gathered Souls
-Gilded Claws
-Embryonic Vigor
-Swiftness
-Consuming Void
-Detect Thoughts
-Earth Shield
-Azerite Injection
-Spirited Defense
-Inspire
-Soul Fetish
-Bound by Shadow
-Earthwall
-Watery Dome
-Inner Flames
-Gift of G'huun
-Wave of Light
-Gift of the Wind
-Steadfast Defense
+[[317936; SoA Forsworn Doctrine
+320272; ToP Spectral Transference
+322433; SD Stoneskin
+324776; MoTS Bramblethorn Coat
+324914; MoTS Nourish the Forest
+326046; MoTS Stimulate Resistance
+326607; HoA Turn to Stone
+327332; SoA Imbue Weapon
+327655; SoA Infuse Weapon
+328015; PF Wonder Grow
+328288; SoA Bless Weapon
+333875; DoS Death's Embrace
+335141; NW Dark Shroud
+341902; ToP Unholy Fervor
+344739; DoS Spectral
 ]];
 
 ------------------------------
@@ -443,10 +435,10 @@ function FocusInterruptSounds:MapCreateOptions()
 						width = "double",
 					},
 
-					strPvePurge = {
+					strPvePurgeIds = {
 						type = "input",
 						name = "PvE Purge Buffs",
-						desc = "List of buffs that should be purged from NPCs.",
+						desc = "List of buff IDs that should be purged from NPCs.",
 						order = 211,
 						multiline = true,
 						width = "double",
@@ -467,7 +459,7 @@ function FocusInterruptSounds:OnInitialize()
 	local strPetInterruptSpells = DEFAULT_PET_INTERRUPT_SPELLS;
 	local strIncomingCC = "";
 	local strPartnerCC = "";
-	local strPvePurge = "";
+	local strPvePurgeIds = "";
 
 	_, self.strClassName = UnitClass("player");
 
@@ -547,7 +539,7 @@ function FocusInterruptSounds:OnInitialize()
 
 	-- Set up purge defaults
 	if (self.fHasPurge) then
-		strPvePurge = DEFAULT_PVE_PURGE;
+		strPvePurgeIds = DEFAULT_PVE_PURGE;
 	end
 
 	-- Build the default settings array
@@ -586,7 +578,7 @@ function FocusInterruptSounds:OnInitialize()
 			strIncomingCC = strIncomingCC,
 			strPartnerCC = strPartnerCC,
 			strArenaPurge = DEFAULT_ARENA_PURGE,
-			strPvePurge = strPvePurge,
+			strPvePurgeIds = strPvePurgeIds,
 		}
 	};
 	self.db = LibStub("AceDB-3.0"):New("FocusInterruptSoundsDB", DEFAULTS, self.strClassName)
@@ -717,7 +709,7 @@ function FocusInterruptSounds:FInList(strElement, strList)
 
 	--self:CheckAndPrintMessage("Looking for " .. strElement);
 
-	return string.find("\n" .. strList .. "\n", "\n%s*" .. self:StrEscapeForRegExp(strElement) .. "%s*\n");
+	return string.find("\n" .. strList .. "\n", "\n%s*" .. self:StrEscapeForRegExp(strElement) .. "%s*[\n;]");
 
 end
 
@@ -744,7 +736,7 @@ function FocusInterruptSounds:FInMap(strKey, strValue, strMap)
 	end
 
 	return string.find("\n" .. strMap .. "\n", "\n%s*" .. strKeyEscaped
-				.. "%s*%->%s*" .. strValueEscaped .. "%s*\n");
+				.. "%s*%->%s*" .. strValueEscaped .. "%s*[\n;]");
 
 end
 
@@ -1110,7 +1102,7 @@ function FocusInterruptSounds:COMBAT_LOG_EVENT_UNFILTERED(event)
 			and ((IsActiveBattlefieldArena()
 					and self:FInList(varParam2, self.db.profile.strArenaPurge))
 				or 0 ~= bit.band(iDestFlags, COMBATLOG_OBJECT_CONTROL_NPC)
-					and self:FInList(varParam2, self.db.profile.strPvePurge))
+					and self:FInList(varParam1, self.db.profile.strPvePurgeIds))
 	) then
 		self:CheckAndPrintMessage(strDestName .. " has " .. varParam2 .. "!");
 		self:CheckAndPlaySound(self.db.profile.strPurgeSound);
