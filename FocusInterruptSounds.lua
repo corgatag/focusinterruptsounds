@@ -47,6 +47,8 @@ Gaze of Madness->Breed Madness
 High Adjudicator Aleez->Bolt of Power
 Tred'ova->Consumption
 Drust Harvester->Spirit Bolt
+Bone Magus->Grave Spike
+Maniacal Soulbinder->Necrotic Bolt
 ]];
 
 local DEFAULT_PLAYER_INTERRUPT_SPELLS =
