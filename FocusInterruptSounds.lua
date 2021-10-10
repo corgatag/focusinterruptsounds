@@ -71,7 +71,8 @@ Wind Shear
 ]];
 
 local DEFAULT_PET_INTERRUPT_SPELLS =
-[[Spell Lock
+[[Axe Toss
+Spell Lock
 ]];
 
 local DEFAULT_AURA_BLACKLIST =
