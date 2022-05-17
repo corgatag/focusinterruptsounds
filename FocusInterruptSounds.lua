@@ -118,6 +118,8 @@ local DEFAULT_PVE_PURGE =
 335141; NW Dark Shroud
 341902; ToP Unholy Fervor
 344739; DoS Spectral
+355980; TSoW Refraction Shield
+355934; TSoW Hard Light Barrier
 ]];
 
 ------------------------------
