@@ -53,7 +53,8 @@ Maniacal Soulbinder->Necrotic Bolt
 
 local DEFAULT_PLAYER_INTERRUPT_SPELLS =
 [[Avenger's Shield
-Command Demon|Spell Lock
+Command Demon->Axe Toss
+Command Demon->Spell Lock
 Counter Shot
 Counterspell
 Disrupt
@@ -69,11 +70,6 @@ Solar Beam
 Spear Hand Strike
 Strangulate
 Wind Shear
-]];
-
-local DEFAULT_PET_INTERRUPT_SPELLS =
-[[Axe Toss
-Spell Lock
 ]];
 
 local DEFAULT_AURA_BLACKLIST =
@@ -419,21 +415,12 @@ function FocusInterruptSounds:MapCreateOptions()
 						multiline = true,
 						width = "double",
 					},
-					strPetInterruptSpells = {
-						type = "input",
-						name = "Pet Interrupt Spells",
-						desc = "List of interrupt spells available to the player's pet.  "
-								.. "Only used if \"Check spell availability\" is enabled.",
-						order = 207,
-						multiline = true,
-						width = "double",
-					},
 
 					strIncomingCC = {
 						type = "input",
 						name = "PvP Incoming CC Spells",
 						desc = "List of spells that should sound a warning for incoming CC in arenas or nearby.",
-						order = 208,
+						order = 207,
 						multiline = true,
 						width = "double",
 					},
@@ -441,7 +428,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "Arena Partner CC Debuffs",
 						desc = "List of debuffs that should sound a warning if applied to your arena partner.",
-						order = 209,
+						order = 208,
 						multiline = true,
 						width = "double",
 					},
@@ -450,7 +437,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "Arena Purge Buffs",
 						desc = "List of buffs that should sound a warning when gained by an arena opponent.",
-						order = 210,
+						order = 209,
 						multiline = true,
 						width = "double",
 					},
@@ -459,7 +446,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "PvE Purge Buffs",
 						desc = "List of buff IDs that should be purged from NPCs.",
-						order = 211,
+						order = 210,
 						multiline = true,
 						width = "double",
 					},
@@ -476,7 +463,6 @@ function FocusInterruptSounds:OnInitialize()
 	local strGlobalOverrides = DEFAULT_GLOBAL_OVERRIDES;
 	local strAuraBlacklist = DEFAULT_AURA_BLACKLIST;
 	local strPlayerInterruptSpells = DEFAULT_PLAYER_INTERRUPT_SPELLS;
-	local strPetInterruptSpells = DEFAULT_PET_INTERRUPT_SPELLS;
 	local strIncomingCC = "";
 	local strPartnerCC = "";
 	local strPvePurgeIds = "";
@@ -594,7 +580,6 @@ function FocusInterruptSounds:OnInitialize()
 			fEnableBlizzardBlacklist = true,
 			strAuraBlacklist = strAuraBlacklist,
 			strPlayerInterruptSpells = strPlayerInterruptSpells,
-			strPetInterruptSpells = strPetInterruptSpells,
 			strIncomingCC = strIncomingCC,
 			strPartnerCC = strPartnerCC,
 			strArenaPurge = DEFAULT_ARENA_PURGE,
@@ -950,44 +935,6 @@ function FocusInterruptSounds:FHasBlacklistedAura(iSourceFlags, strSpellId, strS
 end
 
 ---------------------------------------------------------------------------------------------------
---	FocusInterruptSounds:FIsPetSpellAvailable
---
---		Returns true if the pet can cast the given spell.
---
-function FocusInterruptSounds:FIsPetSpellAvailable(strSpellName)
-
-	-- Make sure the user wants these extra checks
-	if (not self.db.profile.fCheckSpellAvailability) then
-		return true;
-	end
-
-	-- Make sure that there is a spell
-	if (nil == strSpellName) then
-		return false;
-	end
-
-	-- Verify that the pet can act (i.e. isn't feared)
-	if (not GetPetActionsUsable()) then
-		return false;
-	end
-
-	-- Verify that the spell isn't on cooldown (also checks existence)
-	local iStartTime, _, fSpellEnabled = GetSpellCooldown(strSpellName, BOOKTYPE_PET);
-	if (iStartTime ~= 0 or not fSpellEnabled) then
-		return false;
-	end
-
-	-- Verify mana/energy
-	local _, _, _, iCost, _, _, _, _, _ = GetSpellInfo(strSpellName);
-	local iPetMana = UnitPowerType("playerpet");
-	if (nil == iCost or nil == iPetMana or iPetMana < iCost) then
-		return false;
-	end
-
-	return true;
-end
-
----------------------------------------------------------------------------------------------------
 --	FocusInterruptSounds:FIsPlayerSpellAvailable
 --
 --		Returns true if you can cast the given spell.
@@ -997,9 +944,9 @@ function FocusInterruptSounds:FIsPlayerSpellAvailable(strSpellName)
 	local strSpellDisplayNameVerify = nil;
 
 	-- Is there a | special character?
-	local iBarIndex = strSpellName:find("|");
+	local iBarIndex = strSpellName:find("->");
 	if (nil ~= iBarIndex) then
-		strSpellDisplayNameVerify = strSpellName:sub(iBarIndex + 1);
+		strSpellDisplayNameVerify = strSpellName:sub(iBarIndex + 2);
 		strSpellName = strSpellName:sub(0, iBarIndex - 1);
 	end
 
@@ -1010,20 +957,24 @@ function FocusInterruptSounds:FIsPlayerSpellAvailable(strSpellName)
 
 	-- Make sure that there is a spell
 	if (nil == strSpellName) then
+		-- self:CheckAndPrintMessage("Nil spell name");
 		return false;
 	end
 
 	-- Verify that the spell isn't on cooldown
 	local iStartTime, _, fSpellEnabled = GetSpellCooldown(strSpellName);
 	if (iStartTime ~= 0 or not fSpellEnabled) then
+		-- self:CheckAndPrintMessage(strSpellName .. " on CD");
 		return false;
 	end
 
 	-- Verify display name (if applicable) and mana/energy
 	local strSpellDisplayName, _, _, iCost, _, _, _, _, _ = GetSpellInfo(strSpellName);
 	if (nil ~= strSpellDisplayNameVerify and strSpellDisplayNameVerify ~= strSpellDisplayName) then
+		-- self:CheckAndPrintMessage(strSpellName .. " has DN " .. strSpellDisplayName .. " but not " .. strSpellDisplayNameVerify);
 		return false
 	elseif (UnitPowerType("player") < iCost) then
+		-- self:CheckAndPrintMessage(strSpellName .. " low power");
 		return false;
 	end
 
@@ -1045,14 +996,6 @@ function FocusInterruptSounds:FIsInterruptAvailable()
 	for strSpell in string.gmatch(self.db.profile.strPlayerInterruptSpells, "[^%s][^\r\n]+[^%s]") do
 		if (self:FIsPlayerSpellAvailable(strSpell)) then
 			return true;
-		end
-	end
-
-	if (GetPetActionsUsable()) then
-		for strSpell in string.gmatch(self.db.profile.strPetInterruptSpells, "[^%s][^\r\n]+[^%s]") do
-			if (self:FIsPetSpellAvailable(strSpell)) then
-				return true;
-			end
 		end
 	end
 
