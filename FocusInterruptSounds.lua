@@ -7,6 +7,8 @@ local _
 local CASTING_SOUND_FILE_LOW_VOLUME = "Interface\\AddOns\\FocusInterruptSounds\\casting-lv.ogg";
 local CASTING_SOUND_FILE = "Interface\\AddOns\\FocusInterruptSounds\\casting.ogg";
 
+local LOWPRI_SOUND_FILE = "Interface\\AddOns\\FocusInterruptSounds\\lowpri.ogg";
+
 local CC_SOUND_FILE_LOW_VOLUME = "Interface\\AddOns\\FocusInterruptSounds\\cc-lv.ogg";
 local CC_SOUND_FILE = "Interface\\AddOns\\FocusInterruptSounds\\cc.ogg";
 
@@ -36,20 +38,29 @@ local SCHOOL_ARCANE	= 0x40;
 local SCHOOL_ALL	= 0x7F;
 
 local DEFAULT_GLOBAL_OVERRIDES =
-[[
-Mistcaller->Patty Cake
+[[Mistcaller->Patty Cake
 ]];
 
 local DEFAULT_BLACKLIST =
 [[Constellar Designate->Starblast
 Irontide Ravager->Painful Motivation
 Gaze of Madness->Breed Madness
-High Adjudicator Aleez->Bolt of Power
-Tred'ova->Consumption
-Drust Harvester->Spirit Bolt
-Bone Magus->Grave Spike
-Maniacal Soulbinder->Necrotic Bolt
 ]];
+
+local DEFAULT_LOW_PRIORITY_SPELLS =
+[[; Shadowlands
+323538; HoA Bolt of Power
+322767; MoTS Spirit Bolt
+330784; ToP Necrotic Bolt
+; Dragonflight
+152814; SBG Shadow Bolt
+397888; TotJS Hydrolance
+388862; AA Surge
+371306; AV Arcane Bolt
+377503; AV Condensed Frost
+]];
+-- 376399; ignore test
+-- 392279; ignore test
 
 local DEFAULT_PLAYER_INTERRUPT_SPELLS =
 [[Avenger's Shield
@@ -100,7 +111,8 @@ local DEFAULT_ARENA_PURGE =
 ]];
 
 local DEFAULT_PVE_PURGE =
-[[317936; SoA Forsworn Doctrine
+[[; Shadowlands
+317936; SoA Forsworn Doctrine
 320272; ToP Spectral Transference
 322433; SD Stoneskin
 324776; MoTS Bramblethorn Coat
@@ -131,6 +143,22 @@ local DEFAULT_PVE_PURGE =
 227987; KZN:L Dinner Bell
 228280; KZN:L Oath of Fealty
 228225; KZN:L Sultry Heat
+; Dragonflight
+395820; VoI Frost Barrier
+385063; RS Burning Ambition
+373972; RS Blaze of Glory
+392454; RS Burning Veins
+391031; RS Tempest Barrier
+198745; HoV Protective Light
+386223; NO Stormshield
+384686; NO Energy Surge
+387596; NO Swift Wind
+398151; SBG Sinister Focus
+398205; SBG Incorporeal
+209033; CoS Fortification
+396020; TotJS Golden Barrier
+389686; AV Arcane Fury
+374778; AV Brilliant Scales
 ]];
 
 ------------------------------
@@ -155,6 +183,7 @@ function FocusInterruptSounds:MapCreateOptions()
 		[INNERVATE_SOUND_FILE] = "Bzzzt-zzt (louder)",
 		[INTERRUPTED_SOUND_FILE_LOW_VOLUME] = "Ting!",
 		[INTERRUPTED_SOUND_FILE] = "Ting! (louder)",
+		[LOWPRI_SOUND_FILE] = "Ti.",
 		[POLYMORPH_SOUND_FILE_LOW_VOLUME] = "Baaa",
 		[POLYMORPH_SOUND_FILE] = "Baaa (louder)",
 	};
@@ -265,20 +294,34 @@ function FocusInterruptSounds:MapCreateOptions()
 						desc = "Sound to play when the target casts a spell",
 						order = 102,
 					},
+					strTargetLowPriSound = {
+						type = "select",
+						values = soundMap,
+						name = "Target low-pri casting sound",
+						desc = "Sound to play when the target casts a low-priority spell",
+						order = 103,
+					},
 
 					strFocusCastingMode = {
 						type = "select",
 						values = onOffMap,
 						name = "Trigger on focus casting",
 						desc = "Whether or not to play sounds when the focus casts a spell",
-						order = 103,
+						order = 104,
 					},
 					strFocusCastingSound = {
 						type = "select",
 						values = soundMap,
 						name = "Focus casting sound",
 						desc = "Sound to play when the focus casts a spell",
-						order = 104,
+						order = 105,
+					},
+					strFocusLowPriSound = {
+						type = "select",
+						values = soundMap,
+						name = "Focus low-pri sound",
+						desc = "Sound to play when the focus casts a low-priority spell",
+						order = 106,
 					},
 
 					strInterruptCelebrationMode = {
@@ -286,14 +329,14 @@ function FocusInterruptSounds:MapCreateOptions()
 						values = onOffMap,
 						name = "Celebrate successful interrupts",
 						desc = "Whether or not to play sounds on successful interrupt",
-						order = 105,
+						order = 107,
 					},
 					strInterruptCelebrationSound = {
 						type = "select",
 						values = soundMap,
 						name = "Celebration sound",
 						desc = "Sound to play on successful interrupt",
-						order = 106,
+						order = 108,
 					},
 
 					strPurgeMode = {
@@ -301,14 +344,14 @@ function FocusInterruptSounds:MapCreateOptions()
 						values = onOffMap,
 						name = "Purge alert",
 						desc = "Warn of enemy buffs that should be purged",
-						order = 107,
+						order = 109,
 					},
 					strPurgeSound = {
 						type = "select",
 						values = soundMap,
 						name = "Purge sound",
 						desc = "Sound to play on when an enemy buff should be purged",
-						order = 108,
+						order = 110,
 					},
 
 					strGlobalOverrideMode = {
@@ -316,14 +359,14 @@ function FocusInterruptSounds:MapCreateOptions()
 						values = onOffMap,
 						name = "Global override warning",
 						desc = "Warn if a spell in the global override list is cast",
-						order = 109,
+						order = 111,
 					},
 					strGlobalOverrideSound = {
 						type = "select",
 						values = soundMap,
 						name = "Global override sound",
 						desc = "Sound to play when a spell in the global override list is cast",
-						order = 110,
+						order = 112,
 					},
 
 					strIncomingCCMode = {
@@ -331,14 +374,14 @@ function FocusInterruptSounds:MapCreateOptions()
 						values = onOffMap,
 						name = "Incoming CC warning",
 						desc = "Warn of incoming CC if you have a defensive counter (e.g. Grounding Totem, Anti-Magic Shell)",
-						order = 111,
+						order = 113,
 					},
 					strIncomingCCSound = {
 						type = "select",
 						values = soundMap,
 						name = "Incoming CC sound",
 						desc = "Sound to play on incoming CC",
-						order = 112,
+						order = 114,
 					},
 
 					strPartnerCCMode = {
@@ -346,14 +389,14 @@ function FocusInterruptSounds:MapCreateOptions()
 						values = onOffMap,
 						name = "Partner CC warning",
 						desc = "Warn of if your partner is CC'd if you can dispel it",
-						order = 113,
+						order = 115,
 					},
 					strPartnerCCSound = {
 						type = "select",
 						values = soundMap,
 						name = "Partner CC sound",
 						desc = "Sound to play when partner is CC'd",
-						order = 114,
+						order = 116,
 					},
 
 					---------------------------------------------------------------------------------------------------
@@ -406,12 +449,21 @@ function FocusInterruptSounds:MapCreateOptions()
 						width = "double",
 					},
 
+					strLowPrioritySpells = {
+						type = "input",
+						name = "Low Priority Spells",
+						desc = "List of spells IDs for low priority spells. Semicolon is the comment delimeter",
+						order = 206,
+						multiline = true,
+						width = "double",
+					},
+
 					strPlayerInterruptSpells = {
 						type = "input",
 						name = "Player Interrupt Spells",
 						desc = "List of interrupt spells available to the player.  "
 								.. "Only used if \"Check spell availability\" is enabled.",
-						order = 206,
+						order = 207,
 						multiline = true,
 						width = "double",
 					},
@@ -420,7 +472,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "PvP Incoming CC Spells",
 						desc = "List of spells that should sound a warning for incoming CC in arenas or nearby.",
-						order = 207,
+						order = 208,
 						multiline = true,
 						width = "double",
 					},
@@ -428,7 +480,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "Arena Partner CC Debuffs",
 						desc = "List of debuffs that should sound a warning if applied to your arena partner.",
-						order = 208,
+						order = 209,
 						multiline = true,
 						width = "double",
 					},
@@ -437,7 +489,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "Arena Purge Buffs",
 						desc = "List of buffs that should sound a warning when gained by an arena opponent.",
-						order = 209,
+						order = 210,
 						multiline = true,
 						width = "double",
 					},
@@ -446,7 +498,7 @@ function FocusInterruptSounds:MapCreateOptions()
 						type = "input",
 						name = "PvE Purge Buffs",
 						desc = "List of buff IDs that should be purged from NPCs.",
-						order = 210,
+						order = 211,
 						multiline = true,
 						width = "double",
 					},
@@ -561,8 +613,11 @@ function FocusInterruptSounds:OnInitialize()
 
 			strTargetCastingMode = SETTING_MODE_ON,
 			strTargetCastingSound = CASTING_SOUND_FILE_LOW_VOLUME,
+			strTargetLowPriSound = LOWPRI_SOUND_FILE,
 			strFocusCastingMode = SETTING_MODE_ON,
 			strFocusCastingSound = CC_SOUND_FILE_LOW_VOLUME,
+			strFocusLowPriSound = LOWPRI_SOUND_FILE,
+
 			strInterruptCelebrationMode = SETTING_MODE_ON,
 			strInterruptCelebrationSound = INTERRUPTED_SOUND_FILE_LOW_VOLUME,
 			strPurgeMode = SETTING_MODE_ON,
@@ -579,6 +634,7 @@ function FocusInterruptSounds:OnInitialize()
 			fIgnorePhysical = false,
 			fEnableBlizzardBlacklist = true,
 			strAuraBlacklist = strAuraBlacklist,
+			strLowPrioritySpells = DEFAULT_LOW_PRIORITY_SPELLS,
 			strPlayerInterruptSpells = strPlayerInterruptSpells,
 			strIncomingCC = strIncomingCC,
 			strPartnerCC = strPartnerCC,
@@ -669,12 +725,12 @@ function FocusInterruptSounds:FIsSourceFocusOrTarget(iSourceFlags)
 			and (SETTING_MODE_ON == self.db.profile.strTargetCastingMode or
 				SETTING_MODE_IF_FOCUS_MISSING == self.db.profile.strTargetCastingMode and not UnitCanAttack("player", "focus"))
 	) then
-		return true, self.db.profile.strTargetCastingSound;
+		return true, true;
 	end
 
 	-- Check if the source is the focus
 	if (0 ~= bit.band(iSourceFlags, COMBATLOG_OBJECT_FOCUS) and SETTING_MODE_ON == self.db.profile.strFocusCastingMode) then
-		return true, self.db.profile.strFocusCastingSound;
+		return true, false;
 	end
 
 	return false;
@@ -709,6 +765,7 @@ end
 --	FocusInterruptSounds:FInList
 --
 --		Returns true if the given element is in the given newline-delimited list.
+--		Allows for ; as the line-comment delimeter in the list.
 --
 function FocusInterruptSounds:FInList(strElement, strList)
 
@@ -1074,7 +1131,7 @@ function FocusInterruptSounds:COMBAT_LOG_EVENT_UNFILTERED(event)
 
 	-- Play a sound when the Target or Focus starts casting
 	if (not fHandled) then
-		local fIsSourceFocusOrTarget, strCastingSoundFile = self:FIsSourceFocusOrTarget(iSourceFlags);
+		local fIsSourceFocusOrTarget, fIsSourceTarget = self:FIsSourceFocusOrTarget(iSourceFlags);
 		if (fIsSourceFocusOrTarget
 			and self:FIsSpellCastStart(strEventType, iSourceFlags, varParam1, varParam2, varParam3)
 			and not self:FIsCasterOrSpellBlacklisted(strSourceName, iSourceFlags, varParam1, varParam2, varParam3)
@@ -1082,6 +1139,23 @@ function FocusInterruptSounds:COMBAT_LOG_EVENT_UNFILTERED(event)
 			and self:FIsInterruptAvailable()
 		) then
 			self:CheckAndPrintMessage(strSourceName .. " is casting |cffff4444" .. varParam2 .. "|r!");
+
+			local fIsLowPri = self:FInList(varParam1, self.db.profile.strLowPrioritySpells);
+			local strCastingSoundFile = nil;
+			if (fIsSourceTarget) then
+				if (fIsLowPri) then
+					strCastingSoundFile = self.db.profile.strTargetLowPriSound;
+				else
+					strCastingSoundFile = self.db.profile.strTargetCastingSound;
+				end
+			else
+				if (fIsLowPri) then
+					strCastingSoundFile = self.db.profile.strFocusLowPriSound;
+				else
+					strCastingSoundFile = self.db.profile.strFocusCastingSound;
+				end
+			end
+
 			self:CheckAndPlaySound(strCastingSoundFile);
 			fHandled = true;
 		end
