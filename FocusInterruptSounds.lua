@@ -52,13 +52,24 @@ local DEFAULT_LOW_PRIORITY_SPELLS =
 323538; HoA Bolt of Power
 322767; MoTS Spirit Bolt
 330784; ToP Necrotic Bolt
-; Dragonflight
+; Dragonflight S1
 152814; SBG Shadow Bolt
 397888; TotJS Hydrolance
 388862; AA Surge
 371306; AV Arcane Bolt
 377503; AV Condensed Frost
 381530; NO Storm Shock
+; Dragonflight S2
+281420; FH Water Bolt
+259092; FH Lightning Bolt
+257899; FH Painful Motivation
+378155; BH Earth Bolt
+382474; BH Decay Surge
+374706; HoI Pyretic Burst
+410760; VP Wind Bolt
+88959; VP Holy Smite
+369674; Uld Stone Spike
+272180; Undr Void Spit
 ]];
 -- 376399; ignore test
 -- 392279; ignore test
