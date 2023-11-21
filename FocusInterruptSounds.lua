@@ -70,6 +70,14 @@ local DEFAULT_LOW_PRIORITY_SPELLS =
 88959; VP Holy Smite
 369674; Uld Stone Spike
 272180; Undr Void Spit
+; Dragonflight S3
+426731; ToT Water Bolt
+264024; WCM Soul Bolt
+164973; EVB Dancing Thorns
+168040; EVB Nature's Wrath
+168092; EVB Water Bolt
+400165; DIMR Epoch Bolt
+418202; DIMR Temporal Blast
 ]];
 -- 376399; ignore test
 -- 392279; ignore test
@@ -171,6 +179,8 @@ local DEFAULT_PVE_PURGE =
 396020; TotJS Golden Barrier
 389686; AV Arcane Fury
 374778; AV Brilliant Scales
+; Dragonflight S3
+255579; AD Gilded Claws
 ]];
 
 ------------------------------
