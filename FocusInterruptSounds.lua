@@ -1056,7 +1056,7 @@ function FocusInterruptSounds:FIsPlayerSpellAvailable(strSpellName)
 		return false;
 	end
 
-	self:CheckAndPrintMessage(strSpellName .. " available");
+	-- self:CheckAndPrintMessage(strSpellName .. " available");
 	return true;
 end
 
@@ -1233,3 +1233,4 @@ function FocusInterruptSounds:COMBAT_LOG_EVENT_UNFILTERED(event)
 		fHandled = true;
 	end
 end
+w
