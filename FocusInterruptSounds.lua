@@ -1233,4 +1233,3 @@ function FocusInterruptSounds:COMBAT_LOG_EVENT_UNFILTERED(event)
 		fHandled = true;
 	end
 end
-w
